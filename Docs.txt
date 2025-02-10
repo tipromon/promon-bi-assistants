@@ -1,0 +1,159 @@
+# Documentação Técnica - Assistente BI - Promon
+
+## Introdução
+Este documento descreve a estrutura e os componentes do aplicativo Assistente BI - Promon, desenvolvido com React e Next.js, e que utiliza o Flowise para gerenciar assistentes de chat. Ele serve como referência para reconstrução do aplicativo caso ocorra perda de dados.
+
+---
+
+## 1. Tecnologias Utilizadas
+- **Next.js**: Framework para React.
+- **React.js**: Biblioteca JavaScript para interfaces.
+- **Flowise**: Plataforma para criar assistentes conversacionais.
+- **TailwindCSS**: Framework CSS utilitário.
+- **Framer Motion**: Biblioteca para animações.
+- **Lucide Icons**: Biblioteca de ícones.
+- **ShadCN**: Biblioteca de componentes UI.
+
+---
+
+## 2. Estrutura do Aplicativo
+
+### 2.1 Estrutura de Pastas
+```
+/assistente-bi-promon
+├── public/              # Assets estáticos (imagens, ícones, etc.)
+├── components/          # Componentes reutilizáveis
+│   ├── ChatEmbed.tsx    # Componente do chat embutido
+│   ├── Sidebar.tsx      # Barra lateral animada
+│   ├── Header.tsx       # Cabeçalho animado
+│   ├── Dashboard.tsx    # Área de conteúdo
+│   ├── ShinyText.tsx    # Texto animado para o cabeçalho
+├── pages/               # Páginas do Next.js
+│   ├── index.tsx        # Página principal
+├── config/              # Arquivos de configuração
+│   ├── agents.ts        # Configuração dos agentes
+├── lib/                 # Utilitários globais
+├── styles/              # Arquivos de estilização
+├── .env.local           # Configurações do ambiente (API keys)
+├── package.json         # Dependências do projeto
+└── tailwind.config.js   # Configurações do TailwindCSS
+```
+
+---
+
+## 3. Componentes Principais
+
+### 3.1 Configuração dos Agentes
+Arquivo: `config/agents.ts`
+
+```tsx
+export interface AgentConfig {
+  chatflowid: string;
+  welcomeMessage: string;
+  title: string;
+}
+
+export const agents: Record<string, AgentConfig> = {
+  "Assistente BI - Acciona": {
+    chatflowid: process.env.NEXT_PUBLIC_ACCIONA_CHATFLOW_ID || "id_padrao_acciona",
+    welcomeMessage: "Bem-vindo ao Assistente Acciona! Estou aqui para ajudar com informações sobre a empresa Acciona.",
+    title: "Assistente BI - Acciona"
+  },
+  "Mineração e Fertilizantes": {
+    chatflowid: process.env.NEXT_PUBLIC_MINERACAO_CHATFLOW_ID || "id_padrao_mineracao",
+    welcomeMessage: "Bem-vindo ao Assistente de Mineração e Fertilizantes! Como posso ajudar?",
+    title: "Mineração e Fertilizantes"
+  },
+  "SAF (Sustainable Aviation Fuel)": {
+    chatflowid: process.env.NEXT_PUBLIC_SAF_CHATFLOW_ID || "id_padrao_saf",
+    welcomeMessage: "Bem-vindo ao Assistente SAF! Estou aqui para ajudar com informações sobre Sustainable Aviation Fuel.",
+    title: "SAF (Sustainable Aviation Fuel)"
+  },
+  "Assistente BI - VALE": {
+    chatflowid: process.env.NEXT_PUBLIC_VALE_CHATFLOW_ID || "5b498ae0-3a88-4b7e-9382-1c13319b081c",
+    welcomeMessage: "Bem-vindo ao Assistente VALE! Estou aqui para ajudar com informações sobre a VALE.",
+    title: "Assistente BI - VALE"
+  },
+  "Assistente BI - Hydro": {
+    chatflowid: process.env.NEXT_PUBLIC_HYDRO_CHATFLOW_ID || "3baf72f3-c498-4f1b-b669-59beb6583d46",
+    welcomeMessage: "Bem-vindo ao Assistente Hydro! Estou aqui para ajudar com informações sobre a Hydro.",
+    title: "Assistente BI - Hydro"
+  }
+};
+```
+
+---
+
+### 3.2 Layout Global
+Arquivo: `layout.tsx`
+
+```tsx
+import type { Metadata } from "next";
+import { Poppins } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/lib/theme-provider";
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: "Promon BI - Assistente IA",
+  description: "Assistente de Business Intelligence da Promon",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="pt-BR" suppressHydrationWarning>
+      <body className={poppins.className}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+### 3.3 Página Principal
+Arquivo: `page.tsx`
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { SidebarDemo } from '@/components/ui/sidebar-demo';
+import CustomChat from '@/components/CustomChat';
+import { agents } from '@/config/agents';
+
+export default function Home() {
+  const [selectedAgent, setSelectedAgent] = useState(Object.keys(agents)[0]);
+
+  const handleAgentSelect = (agentName: string) => {
+    const cleanName = agentName.replace('#', '');
+    if (agents[cleanName]) {
+      setSelectedAgent(cleanName);
+    }
+  };
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <div className="flex-shrink-0">
+        <SidebarDemo onAgentSelect={handleAgentSelect} />
+      </div>
+      <div className="flex-grow">
+        <CustomChat agent={agents[selectedAgent]} />
+      </div>
+    </div>
+  );
+}
+```
+
