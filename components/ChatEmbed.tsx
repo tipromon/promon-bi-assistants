@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import type { AgentConfig } from '@/config/agents';
 
@@ -51,7 +51,14 @@ interface FlowiseProps {
 
 const FullPageChat = dynamic<FlowiseProps>(
   () => import('flowise-embed-react').then((mod) => mod.FullPageChat),
-  { ssr: false }
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="animate-pulse text-blue-600">Carregando chat...</div>
+      </div>
+    )
+  }
 );
 
 interface ChatEmbedProps {
@@ -71,11 +78,36 @@ declare global {
 }
 
 export function ChatEmbed({ agent }: ChatEmbedProps) {
+  const apiHost = process.env.NEXT_PUBLIC_FLOWISE_URL;
+
+  useEffect(() => {
+    // Log para debug
+    console.log('API Host:', apiHost);
+    console.log('Chatflow ID:', agent.chatflowid);
+    
+    // Verificar se a URL da API está correta
+    if (apiHost?.includes('localhost')) {
+      console.warn('Atenção: API está configurada para localhost');
+    }
+  }, [agent.chatflowid, apiHost]);
+
+  if (!apiHost) {
+    console.error('NEXT_PUBLIC_FLOWISE_URL não está definida');
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-red-600">Erro: API URL não configurada</div>
+      </div>
+    );
+  }
+
+  // Garantir que a URL da API está no formato correto
+  const formattedApiHost = apiHost.endsWith('/') ? apiHost.slice(0, -1) : apiHost;
+
   return (
     <div className="w-full h-full">
       <FullPageChat
         chatflowid={agent.chatflowid}
-        apiHost={process.env.NEXT_PUBLIC_FLOWISE_URL}
+        apiHost={formattedApiHost}
         theme={{
           chatWindow: {
             showTitle: true,
