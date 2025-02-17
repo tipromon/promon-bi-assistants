@@ -134,8 +134,8 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
               textColor: '#303235',
               sendButtonColor: '#3B81F6',
               autoFocus: true,
-              sendMessageSound: true,
-              receiveMessageSound: true,
+              sendMessageSound: false,
+              receiveMessageSound: false,
             },
             feedback: {
               color: '#303235',
