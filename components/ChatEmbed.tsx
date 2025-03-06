@@ -177,9 +177,24 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
       <div className="absolute top-4 right-4 z-50">
         <button 
           onClick={clearHistory}
-          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+          className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1 rounded-md border border-gray-200 bg-white/80 hover:bg-white transition-all duration-200 shadow-sm"
         >
-          Limpar Histórico
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="12" 
+            height="12" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="2" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h18"></path>
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+          </svg>
+          Limpar conversa
         </button>
       </div>
       <FullPageChat
