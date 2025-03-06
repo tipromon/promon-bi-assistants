@@ -70,7 +70,17 @@
   * {
     @apply border-border;
   }
+  
+  html {
+    @apply overflow-x-hidden;
+  }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen overflow-x-hidden;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    position: relative;
+    margin: 0;
+    padding: 0;
   }
 }
