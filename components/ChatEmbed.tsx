@@ -94,8 +94,7 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
   const apiHost = process.env.NEXT_PUBLIC_FLOWISE_URL;
   const [chatKey, setChatKey] = useState(agent.chatflowid);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-
-  const MAX_MESSAGES = 50; // Ajuste conforme necessário
+  const MAX_MESSAGES = 50;
 
   // Carregar histórico quando mudar de agente
   useEffect(() => {
@@ -138,7 +137,15 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
   };
 
   const saveToHistory = (messages: ChatMessage[]) => {
-    // Manter apenas as últimas MAX_MESSAGES mensagens
+    // Se atingir o limite, limpa todo o histórico
+    if (messages.length >= MAX_MESSAGES) {
+      localStorage.removeItem(`chat_history_${agent.chatflowid}`);
+      setChatHistory([]);
+      // Força a recriação do componente do chat
+      setChatKey(Date.now().toString());
+      return;
+    }
+    
     const limitedMessages = messages.slice(-MAX_MESSAGES);
     localStorage.setItem(`chat_history_${agent.chatflowid}`, JSON.stringify(limitedMessages));
     setChatHistory(limitedMessages);
@@ -182,7 +189,7 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
             height: '100%',
             width: '100%',
             fontSize: 16,
-            clearChatOnReload: false,
+            clearChatOnReload: true,
             botMessage: {
               backgroundColor: '#f7f8ff',
               textColor: '#303235',
