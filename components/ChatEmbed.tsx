@@ -40,6 +40,10 @@ interface ChatWindowTheme {
       company: string;
       companyLink: string;
     };
+    initialMessages: {
+      message: string;
+      type: 'user' | 'bot';
+    }[];
   };
 }
 
@@ -47,6 +51,9 @@ interface FlowiseProps {
   chatflowid: string;
   apiHost?: string;
   theme?: ChatWindowTheme;
+  onUserMessage?: (message: string) => void;
+  onBotResponse?: (response: string) => void;
+  initialMessages?: Array<{message: string, type: 'user' | 'bot'}>;
 }
 
 const FullPageChat = dynamic<FlowiseProps>(
@@ -69,6 +76,12 @@ interface ChatEmbedProps {
   };
 }
 
+interface ChatMessage {
+  type: 'user' | 'bot';
+  message: string;
+  timestamp: number;
+}
+
 declare global {
   interface Window {
     Chatbot: {
@@ -80,11 +93,56 @@ declare global {
 export function ChatEmbed({ agent }: ChatEmbedProps) {
   const apiHost = process.env.NEXT_PUBLIC_FLOWISE_URL;
   const [chatKey, setChatKey] = useState(agent.chatflowid);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
+  const MAX_MESSAGES = 50; // Ajuste conforme necessário
+
+  // Carregar histórico quando mudar de agente
   useEffect(() => {
-    // Atualizar a key quando o agente mudar
+    const savedHistory = localStorage.getItem(`chat_history_${agent.chatflowid}`);
+    if (savedHistory) {
+      try {
+        const parsedHistory = JSON.parse(savedHistory);
+        setChatHistory(parsedHistory);
+      } catch (error) {
+        console.error('Erro ao carregar histórico:', error);
+      }
+    }
     setChatKey(agent.chatflowid);
   }, [agent.chatflowid]);
+
+  // Função para salvar mensagens no histórico
+  const handleMessageSent = (message: string) => {
+    const newMessage: ChatMessage = {
+      type: 'user',
+      message,
+      timestamp: Date.now()
+    };
+    
+    const updatedHistory = [...chatHistory, newMessage];
+    setChatHistory(updatedHistory);
+    saveToHistory(updatedHistory);
+  };
+
+  // Função para salvar respostas do bot
+  const handleBotResponse = (response: string) => {
+    const newMessage: ChatMessage = {
+      type: 'bot',
+      message: response,
+      timestamp: Date.now()
+    };
+    
+    const updatedHistory = [...chatHistory, newMessage];
+    setChatHistory(updatedHistory);
+    saveToHistory(updatedHistory);
+  };
+
+  const saveToHistory = (messages: ChatMessage[]) => {
+    // Manter apenas as últimas MAX_MESSAGES mensagens
+    const limitedMessages = messages.slice(-MAX_MESSAGES);
+    localStorage.setItem(`chat_history_${agent.chatflowid}`, JSON.stringify(limitedMessages));
+    setChatHistory(limitedMessages);
+  };
 
   useEffect(() => {
     // Log para debug
@@ -109,8 +167,21 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
   // Garantir que a URL da API está no formato correto
   const formattedApiHost = apiHost.endsWith('/') ? apiHost.slice(0, -1) : apiHost;
 
+  const clearHistory = () => {
+    localStorage.removeItem(`chat_history_${agent.chatflowid}`);
+    setChatHistory([]);
+  };
+
   return (
     <div className="w-full h-full">
+      <div className="absolute top-4 right-4 z-50">
+        <button 
+          onClick={clearHistory}
+          className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600"
+        >
+          Limpar Histórico
+        </button>
+      </div>
       <FullPageChat
         key={chatKey}
         chatflowid={agent.chatflowid}
@@ -124,7 +195,7 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
             height: '100%',
             width: '100%',
             fontSize: 16,
-            clearChatOnReload: true,
+            clearChatOnReload: false,
             botMessage: {
               backgroundColor: '#f7f8ff',
               textColor: '#303235',
@@ -152,9 +223,15 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
               text: 'Powered by',
               company: 'Flowise',
               companyLink: 'https://flowiseai.com',
-            }
+            },
+            initialMessages: chatHistory.map(msg => ({
+              message: msg.message,
+              type: msg.type
+            }))
           }
         }}
+        onUserMessage={handleMessageSent}
+        onBotResponse={handleBotResponse}
       />
     </div>
   );
