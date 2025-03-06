@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { AgentConfig } from '@/config/agents';
 
@@ -79,6 +79,12 @@ declare global {
 
 export function ChatEmbed({ agent }: ChatEmbedProps) {
   const apiHost = process.env.NEXT_PUBLIC_FLOWISE_URL;
+  const [chatKey, setChatKey] = useState(agent.chatflowid);
+
+  useEffect(() => {
+    // Atualizar a key quando o agente mudar
+    setChatKey(agent.chatflowid);
+  }, [agent.chatflowid]);
 
   useEffect(() => {
     // Log para debug
@@ -106,6 +112,7 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
   return (
     <div className="w-full h-full">
       <FullPageChat
+        key={chatKey}
         chatflowid={agent.chatflowid}
         apiHost={formattedApiHost}
         theme={{
@@ -117,7 +124,7 @@ export function ChatEmbed({ agent }: ChatEmbedProps) {
             height: '100%',
             width: '100%',
             fontSize: 16,
-            clearChatOnReload: false,
+            clearChatOnReload: true,
             botMessage: {
               backgroundColor: '#f7f8ff',
               textColor: '#303235',

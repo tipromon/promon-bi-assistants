@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { ChatEmbed } from '@/components/ChatEmbed';
@@ -10,12 +10,12 @@ export default function Home() {
   const [selectedAgent, setSelectedAgent] = useState(Object.keys(agents)[0]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
-  const handleAgentSelect = (agentName: string) => {
+  const handleAgentSelect = useCallback((agentName: string) => {
     const cleanName = agentName.replace('#', '');
     if (agents[cleanName]) {
       setSelectedAgent(cleanName);
     }
-  };
+  }, []);
 
   return (
     <div className="flex h-screen">
@@ -28,7 +28,10 @@ export default function Home() {
           <Header />
         </div>
         <main className="flex-1 overflow-auto">
-          <ChatEmbed agent={agents[selectedAgent]} />
+          <ChatEmbed 
+            key={selectedAgent}
+            agent={agents[selectedAgent]} 
+          />
         </main>
       </div>
     </div>
